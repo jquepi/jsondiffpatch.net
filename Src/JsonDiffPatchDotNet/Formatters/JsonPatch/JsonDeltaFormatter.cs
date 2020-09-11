@@ -94,8 +94,8 @@ namespace JsonDiffPatchDotNet.Formatters.JsonPatch
 			var removeOpsOtherOps = PartitionRemoveOps(result);
 			var removeOps = removeOpsOtherOps[0];
 			var otherOps = removeOpsOtherOps[1];
-			Array.Sort(removeOps, new RemoveOperationComparer());
-			return removeOps.Concat(otherOps).ToList();
+			var removeOpsReverse = removeOps.OrderBy(x => x.Path, new PathComparer());
+			return removeOpsReverse.Concat(otherOps).ToList();
 		}
 
 		private IList<Operation[]> PartitionRemoveOps(IList<Operation> result)
@@ -109,15 +109,15 @@ namespace JsonDiffPatchDotNet.Formatters.JsonPatch
 			return new List<Operation[]> {left.ToArray(), right.ToArray()};
 		}
 
-		private class RemoveOperationComparer : IComparer<Operation>
+		private class PathComparer : IComparer<string>
 		{
-			public int Compare(Operation a, Operation b)
+			public int Compare(string x, string y)
 			{
-				if (a == null) throw new ArgumentNullException(nameof(a));
-				if (b == null) throw new ArgumentNullException(nameof(b));
+				if (x == null) throw new ArgumentNullException(nameof(x));
+				if (y == null) throw new ArgumentNullException(nameof(y));
 
-				var splitA = a.Path.Split('/');
-				var splitB = b.Path.Split('/');
+				var splitA = x.Split('/');
+				var splitB = y.Split('/');
 
 				return splitA.Length != splitB.Length
 					? splitA.Length - splitB.Length
